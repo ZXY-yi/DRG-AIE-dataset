@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRG grouper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .system-container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .header {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px 8px 0 0;
+            padding: 16px 24px;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .progress-info {
+            font-size: 14px;
+            color: #666;
+            text-align: right;
+        }
+
+        .timer-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .timer-display {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 16px;
+        }
+
+        .form-container {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 24px;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .group-container {
+            border: 1px dashed #007bff;
+            border-radius: 4px;
+            padding: 15px 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            height: 36px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.15s ease-in-out;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .dynamic-section {
+            margin-top: 8px;
+        }
+
+        .dual-input-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .numbered-rows {
+            counter-reset: row;
+        }
+
+        .numbered-rows .dual-input-row {
+            counter-increment: row;
+        }
+
+        .numbered-rows .dual-input-row::before {
+            content: counter(row);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 6px;
+            border-radius: 11px;
+            background: #eef6ff;
+            color: #1f3b63;
+            font-weight: 600;
+            font-size: 12px;
+            border: 1px solid #d6e6ff;
+        }
+
+        .dual-input {
+            flex: 1;
+        }
+
+        .add-btn {
+            color: #007bff;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.15s ease-in-out;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .add-btn:hover {
+            background-color: #f8f9fa;
+        }
+
+        .delete-btn {
+            color: #6c757d;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.15s ease-in-out;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .delete-btn:hover {
+            color: #dc3545;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .age-section .row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .newborn-weight-row {
+            align-items: center;
+            gap: 16px;
+        }
+
+        .newborn-weight-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .newborn-weight-label {
+            min-width: auto;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .newborn-weight-input {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .age-section label {
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .select-field {
+            width: 100%;
+            height: 36px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .single-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .single-input-row label {
+            min-width: 180px;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: space-between;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .submit-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .nav-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .nav-btn:hover {
+            background-color: #545b62;
+        }
+
+        .nav-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .dual-field-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .dual-field-group .input-field {
+            flex: 1;
+        }
+
+        .title-with-button {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .title-text {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #007bff;
+            border-radius: 4px;
+            transition: width 0.3s ease-in-out;
+        }
+
+        .questionnaire-number {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 18px;
+        }
+
+        .start-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .start-btn:hover {
+            background-color: #218838;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .pause-timer-btn {
+            background-color: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .pause-timer-btn:hover {
+            background-color: #e0a800;
+        }
+
+        .pause-timer-btn:disabled {
+            background-color: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="system-container">
+        <div class="header">
+                <div style="flex: 1;">
+                    <div class="title-row">
+                        <button type="button" class="pause-timer-btn" id="pauseTimerBtn" onclick="toggleTimerPause()" disabled>Pause timer</button>
+                        <h1>DRG grouper</h1>
+                    </div>
+                    <div class="timer-info" id="timerSection" style="display: none;">
+                        <span>Total time: <span class="timer-display" id="totalTimer">00:00:00</span></span>
+                        <span style="margin-left: 16px;">Current questionnaire: <span class="timer-display" id="currentTimer">00:00:00</span></span>
+                    </div>
+                </div>
+            <div class="progress-info">
+                <div id="startSection">
+                    <button type="button" class="start-btn" onclick="startQuestionnaire()">START</button>
+                </div>
+                <div id="progressSection" style="display: none;">
+                    <span class="questionnaire-number">Questionnaire <span id="currentPage">1</span>/10</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 4.76%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form id="medicalForm">
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="group-container">
+                        <div class="section-title">Outpatient (emergency) diagnosis</div>
+                        <div class="dual-field-group">
+                            <input type="text" class="input-field" placeholder="Enter outpatient (emergency) diagnosis name" id="emergencyDiagnosis">
+                            <input type="text" class="input-field" placeholder="Enter outpatient (emergency) diagnosis code" id="emergencyDiagnosisCode">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="group-container">
+                        <div class="section-title">Primary diagnosis</div>
+                        <div class="dual-field-group">
+                            <input type="text" class="input-field" placeholder="Enter primary diagnosis name" id="mainDiagnosisName">
+                            <input type="text" class="input-field" placeholder="Enter primary diagnosis code" id="mainDiagnosisCode">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="group-container">
+                        <div class="title-with-button">
+                            <div class="title-text">Secondary diagnoses</div>
+                            <button type="button" class="add-btn" onclick="addOtherDiagnosis()">Add</button>
+                        </div>
+                        <div class="dynamic-section numbered-rows" id="otherDiagnosisSection">
+                            <div class="dual-input-row">
+                                <input type="text" class="input-field dual-input" placeholder="Enter secondary diagnosis name">
+                                <input type="text" class="input-field dual-input" placeholder="Enter secondary diagnosis code">
+                                <button type="button" class="delete-btn" onclick="removeOtherDiagnosis(this)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="group-container">
+                        <div class="title-with-button">
+                            <div class="title-text">Surgical procedures</div>
+                            <button type="button" class="add-btn" onclick="addOtherOperation()">Add</button>
+                        </div>
+                        <div class="dynamic-section numbered-rows" id="otherOperationSection">
+                            <div class="dual-input-row">
+                                <input type="text" class="input-field dual-input" placeholder="Enter surgical procedure name">
+                                <input type="text" class="input-field dual-input" placeholder="Enter surgical procedure code">
+                                <button type="button" class="delete-btn" onclick="removeOtherOperation(this)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="section-title">gender</div>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="male" checked>
+                            male
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="gender" value="female">
+                            female
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ???? -->
+                <div class="form-section age-section">
+                    <div class="section-title">age</div>
+                    <div class="row" id="ageYearsRow">
+                        <label>age (years)</label>
+                        <input type="text" class="input-field" placeholder="Enter age (years)" id="ageYears" oninput="validateAgeInput(this)">
+                    </div>
+                    <div class="row" id="ageDaysRow">
+                        <label>age less than 1 year old</label>
+                        <input type="text" class="input-field" placeholder="Enter age less than 1 year old" id="ageDays" oninput="validateAgeInput(this)">
+                    </div>
+                    <div class="row newborn-weight-row" id="newbornWeightRow" style="display: none;">
+                        <div class="newborn-weight-item">
+                            <span class="newborn-weight-label">Newborn birth weight:</span>
+                            <input type="text" class="input-field newborn-weight-input" id="newbornBirthWeight" placeholder="Newborn birth weight (g)">
+                        </div>
+                        <div class="newborn-weight-item">
+                            <span class="newborn-weight-label">Newborn admission weight:</span>
+                            <input type="text" class="input-field newborn-weight-input" id="newbornAdmissionWeight" placeholder="Newborn admission weight (g)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="section-title">number of hospital days</div>
+                    <input type="text" class="input-field" placeholder="Enter number of hospital days" id="hospitalDays" oninput="validateNumberInput(this)">
+                </div>
+
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="section-title">discharge method</div>
+                    <select class="select-field" id="dischargeType">
+                        <option value="discharge as doctor's orders">discharge as doctor's orders</option>
+                        <option value="transfer to another hospital as doctor's orders">transfer to another hospital as doctor's orders</option>
+                        <option value="transfer to community health service centers/township health centers as doctor's orders">transfer to community health service centers/township health centers as doctor's orders</option>
+                        <option value="discharge as non-doctor's orders">discharge as non-doctor's orders</option>
+                        <option value="death">death</option>
+                        <option value="other">other</option>
+                    </select>
+                    <div id="receivingInstitutionSection" class="single-input-row" style="display: none;">
+                        <label for="receivingInstitutionName">name of the medical institution to be received:</label>
+                        <input type="text" class="input-field" id="receivingInstitutionName" placeholder="Enter the name of the medical institution to be received">
+                    </div>
+                </div>
+
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="group-container">
+                        <div class="section-title">Pathological diagnosis</div>
+                        <div class="dual-field-group">
+                            <input type="text" class="input-field" placeholder="Enter pathological diagnosis name" id="pathologyDiagnosisName">
+                            <input type="text" class="input-field" placeholder="Enter pathological diagnosis code" id="pathologyDiagnosisCode">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ???? -->
+                <div class="form-section">
+                    <div class="section-title">hospitalization expenses (RMB): total expenses</div>
+                    <input type="text" class="input-field" placeholder="Enter total expenses" id="totalCost" oninput="validateCostInput(this)">
+                </div>
+
+                <!-- ???? -->
+                <div class="button-group">
+                    <div class="nav-buttons">
+                        <button type="button" class="nav-btn" id="prevBtn" onclick="prevQuestionnaire()" disabled>Previous</button>
+                        <button type="button" class="nav-btn" id="nextBtn" onclick="nextQuestionnaire()">Next</button>
+                    </div>
+                    <button type="button" class="submit-btn" id="submitBtn" onclick="submitAllQuestionnaires()" style="display: none;">Submit DRG extraction results</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ????
+        const TOTAL_QUESTIONNAIRES = 10;
+        let currentQuestionnaire = 1;
+        let questionnairesData = Array(TOTAL_QUESTIONNAIRES).fill().map(() => ({
+            emergencyDiagnosis: '',
+            emergencyDiagnosisCode: '',
+            mainDiagnosisName: '',
+            mainDiagnosisCode: '',
+            otherDiagnosis: [],
+            otherOperation: [],
+            gender: 'male',
+            ageYears: '',
+            ageDays: '',
+            newbornBirthWeight: '',
+            newbornAdmissionWeight: '',
+            hospitalDays: '',
+            dischargeType: "discharge as doctor's orders",
+            receivingInstitutionName: '',
+            pathologyDiagnosisName: '',
+            pathologyDiagnosisCode: '',
+            totalCost: '',
+            startTime: null,
+            endTime: null,
+            duration: 0
+        }));
+
+        // ????
+        let totalStartTime = null;
+        let currentQuestionnaireStartTime = null;
+        let totalTimerInterval = null;
+        let currentTimerInterval = null;
+        let isTimerPaused = false;
+        let pauseStartTimestamp = null;
+        let totalPausedDuration = 0;
+
+        // ????
+        function initSystem() {
+            updateProgress();
+            updateNavigationButtons();
+            loadQuestionnaireData(currentQuestionnaire);
+            document.getElementById('dischargeType').addEventListener('change', updateReceivingInstitutionVisibility);
+            const form = document.getElementById('medicalForm');
+            form.addEventListener('input', (event) => {
+                const target = event.target;
+                if (target && target.matches('input[type="text"]')) {
+                    sanitizeTextInputNoNewline(target);
+                }
+            });
+            form.addEventListener('paste', (event) => {
+                const target = event.target;
+                if (target && target.matches('input[type="text"]')) {
+                    setTimeout(() => sanitizeTextInputNoNewline(target), 0);
+                }
+            });
+            updateNewbornWeightVisibility();
+            
+            // ????
+            if (currentQuestionnaire >= 2) {
+                document.getElementById('startSection').style.display = 'none';
+                document.getElementById('progressSection').style.display = 'block';
+            }
+        }
+
+        function getTimingNow() {
+            return isTimerPaused && pauseStartTimestamp
+                ? new Date(pauseStartTimestamp)
+                : new Date();
+        }
+
+        function sanitizeNoNewline(value) {
+            return value.replace(/[\r\n]+/g, ' ');
+        }
+
+        function sanitizeTextInputNoNewline(input) {
+            const sanitizedValue = sanitizeNoNewline(input.value);
+            if (sanitizedValue !== input.value) {
+                input.value = sanitizedValue;
+            }
+        }
+
+        function getTotalElapsedTime() {
+            if (!totalStartTime) {
+                return 0;
+            }
+            return Math.max(0, getTimingNow() - totalStartTime - totalPausedDuration);
+        }
+
+        function getCurrentQuestionnaireElapsedTime() {
+            const data = questionnairesData[currentQuestionnaire - 1];
+            if (!data) {
+                return 0;
+            }
+
+            let elapsed = data.duration || 0;
+            if (data.startTime) {
+                elapsed += getTimingNow() - data.startTime;
+            }
+
+            return Math.max(0, elapsed);
+        }
+
+        function updateTimerDisplays() {
+            document.getElementById('totalTimer').textContent = formatTime(getTotalElapsedTime());
+            document.getElementById('currentTimer').textContent = formatTime(getCurrentQuestionnaireElapsedTime());
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        }
+
+        function toggleTimerPause() {
+            if (!totalStartTime) {
+                return;
+            }
+
+            const pauseBtn = document.getElementById('pauseTimerBtn');
+            if (!isTimerPaused) {
+                isTimerPaused = true;
+                pauseStartTimestamp = Date.now();
+                clearInterval(totalTimerInterval);
+                clearInterval(currentTimerInterval);
+                pauseBtn.textContent = 'Resume timer';
+            } else {
+                const pausedMs = Date.now() - pauseStartTimestamp;
+                totalPausedDuration += pausedMs;
+
+                const data = questionnairesData[currentQuestionnaire - 1];
+                if (data && data.startTime) {
+                    data.startTime = new Date(data.startTime.getTime() + pausedMs);
+                }
+                if (currentQuestionnaireStartTime) {
+                    currentQuestionnaireStartTime = new Date(currentQuestionnaireStartTime.getTime() + pausedMs);
+                }
+
+                isTimerPaused = false;
+                pauseStartTimestamp = null;
+                pauseBtn.textContent = 'Pause timer';
+                startTimers();
+            }
+
+            updateTimerDisplays();
+        }
+
+        function isTransferDischargeType(dischargeType) {
+            return dischargeType === "transfer to another hospital as doctor's orders" || dischargeType === "transfer to community health service centers/township health centers as doctor's orders";
+        }
+
+        function updateReceivingInstitutionVisibility() {
+            const dischargeType = document.getElementById('dischargeType').value;
+            const receivingInstitutionSection = document.getElementById('receivingInstitutionSection');
+            const receivingInstitutionName = document.getElementById('receivingInstitutionName');
+            const shouldShow = isTransferDischargeType(dischargeType);
+
+            receivingInstitutionSection.style.display = shouldShow ? 'flex' : 'none';
+            if (!shouldShow) {
+                receivingInstitutionName.value = '';
+            }
+        }
+
+        function updateNewbornWeightVisibility() {
+            const ageDaysValue = document.getElementById('ageDays').value.trim();
+            const newbornWeightRow = document.getElementById('newbornWeightRow');
+            const newbornBirthWeight = document.getElementById('newbornBirthWeight');
+            const newbornAdmissionWeight = document.getElementById('newbornAdmissionWeight');
+            const shouldShow = ageDaysValue !== '';
+
+            newbornWeightRow.style.display = shouldShow ? 'flex' : 'none';
+            if (!shouldShow) {
+                newbornBirthWeight.value = '';
+                newbornAdmissionWeight.value = '';
+            }
+        }
+
+        function updateAgeVisibility() {
+            const ageYears = document.getElementById('ageYears');
+            const ageDays = document.getElementById('ageDays');
+            const ageYearsRow = document.getElementById('ageYearsRow');
+            const ageDaysRow = document.getElementById('ageDaysRow');
+            const hasYears = ageYears.value.trim() !== '';
+            const hasDays = ageDays.value.trim() !== '';
+
+            if (hasYears && !hasDays) {
+                ageDaysRow.style.display = 'none';
+                ageYearsRow.style.display = 'flex';
+            } else if (hasDays && !hasYears) {
+                ageYearsRow.style.display = 'none';
+                ageDaysRow.style.display = 'flex';
+            } else {
+                ageYearsRow.style.display = 'flex';
+                ageDaysRow.style.display = 'flex';
+            }
+        }
+
+        // ????
+        function startQuestionnaire() {
+            // ????
+            document.getElementById('startSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('timerSection').style.display = 'block';
+            
+            // ????
+            totalStartTime = new Date();
+            currentQuestionnaireStartTime = new Date();
+            totalPausedDuration = 0;
+            isTimerPaused = false;
+            pauseStartTimestamp = null;
+            
+            // ????
+            questionnairesData[0].startTime = totalStartTime;
+            
+            // ????
+            startTimers();
+            updateTimerDisplays();
+
+            const pauseBtn = document.getElementById('pauseTimerBtn');
+            pauseBtn.disabled = false;
+                    pauseBtn.textContent = 'Pause timer';
+            
+            // ????
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        // ????
+        function startTimers() {
+            clearInterval(totalTimerInterval);
+            clearInterval(currentTimerInterval);
+            totalTimerInterval = setInterval(updateTimerDisplays, 1000);
+            currentTimerInterval = setInterval(updateTimerDisplays, 1000);
+        }
+
+        // ????
+        function formatTime(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // ????
+        function updateProgress() {
+            document.getElementById('currentPage').textContent = currentQuestionnaire;
+            const progressPercent = (currentQuestionnaire / TOTAL_QUESTIONNAIRES) * 100;
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+            
+            // ????
+            if (currentQuestionnaire >= 2) {
+                document.getElementById('startSection').style.display = 'none';
+                document.getElementById('progressSection').style.display = 'block';
+            }
+        }
+
+        // ????
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+
+            prevBtn.disabled = currentQuestionnaire === 1;
+            
+            if (currentQuestionnaire === TOTAL_QUESTIONNAIRES) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        // ????
+        function saveCurrentQuestionnaire() {
+            const data = questionnairesData[currentQuestionnaire - 1];
+            
+            // ????
+            data.emergencyDiagnosis = document.getElementById('emergencyDiagnosis').value.trim();
+            data.emergencyDiagnosisCode = document.getElementById('emergencyDiagnosisCode').value.trim();
+            data.mainDiagnosisName = document.getElementById('mainDiagnosisName').value.trim();
+            data.mainDiagnosisCode = document.getElementById('mainDiagnosisCode').value.trim();
+            data.gender = document.querySelector('input[name="gender"]:checked').value;
+            data.ageYears = document.getElementById('ageYears').value.trim();
+            data.ageDays = document.getElementById('ageDays').value.trim();
+            data.newbornBirthWeight = document.getElementById('newbornBirthWeight').value.trim();
+            data.newbornAdmissionWeight = document.getElementById('newbornAdmissionWeight').value.trim();
+            data.hospitalDays = document.getElementById('hospitalDays').value.trim();
+            data.dischargeType = document.getElementById('dischargeType').value;
+            data.receivingInstitutionName = isTransferDischargeType(data.dischargeType)
+                ? document.getElementById('receivingInstitutionName').value.trim()
+                : '';
+            data.pathologyDiagnosisName = document.getElementById('pathologyDiagnosisName').value.trim();
+            data.pathologyDiagnosisCode = document.getElementById('pathologyDiagnosisCode').value.trim();
+            data.totalCost = document.getElementById('totalCost').value.trim();
+
+            // ????
+            data.otherDiagnosis = [];
+            Array.from(document.querySelectorAll('#otherDiagnosisSection .dual-input-row')).forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const name = inputs[0].value.trim();
+                const code = inputs[1].value.trim();
+                if (name || code) {
+                    data.otherDiagnosis.push({ name, code });
+                }
+            });
+
+            // ????
+            data.otherOperation = [];
+            Array.from(document.querySelectorAll('#otherOperationSection .dual-input-row')).forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const name = inputs[0].value.trim();
+                const code = inputs[1].value.trim();
+                if (name || code) {
+                    data.otherOperation.push({ name, code });
+                }
+            });
+        }
+
+        // ????
+        function loadQuestionnaireData(questionnaireNumber) {
+            const data = questionnairesData[questionnaireNumber - 1];
+            
+            // ????
+            document.getElementById('emergencyDiagnosis').value = data.emergencyDiagnosis;
+            document.getElementById('emergencyDiagnosisCode').value = data.emergencyDiagnosisCode;
+            document.getElementById('mainDiagnosisName').value = data.mainDiagnosisName;
+            document.getElementById('mainDiagnosisCode').value = data.mainDiagnosisCode;
+            document.querySelector(`input[name="gender"][value="${data.gender}"]`).checked = true;
+            document.getElementById('ageYears').value = data.ageYears;
+            document.getElementById('ageDays').value = data.ageDays;
+            updateAgeVisibility();
+            document.getElementById('newbornBirthWeight').value = data.newbornBirthWeight || '';
+            document.getElementById('newbornAdmissionWeight').value = data.newbornAdmissionWeight || '';
+            updateNewbornWeightVisibility();
+            document.getElementById('hospitalDays').value = data.hospitalDays;
+            document.getElementById('dischargeType').value = data.dischargeType;
+            document.getElementById('receivingInstitutionName').value = data.receivingInstitutionName || '';
+            updateReceivingInstitutionVisibility();
+            document.getElementById('pathologyDiagnosisName').value = data.pathologyDiagnosisName;
+            document.getElementById('pathologyDiagnosisCode').value = data.pathologyDiagnosisCode;
+            document.getElementById('totalCost').value = data.totalCost;
+
+            // ????
+            const otherDiagnosisSection = document.getElementById('otherDiagnosisSection');
+            otherDiagnosisSection.innerHTML = '';
+            
+            if (data.otherDiagnosis.length === 0) {
+                addOtherDiagnosis();
+            } else {
+                data.otherDiagnosis.forEach((item, index) => {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'dual-input-row';
+                    newRow.innerHTML = `
+                        <input type="text" class="input-field dual-input" placeholder="Enter secondary diagnosis name" value="${item.name}">
+                        <input type="text" class="input-field dual-input" placeholder="Enter secondary diagnosis code" value="${item.code}">
+                        <button type="button" class="delete-btn" onclick="removeOtherDiagnosis(this)">Delete</button>
+                    `;
+                    otherDiagnosisSection.appendChild(newRow);
+                });
+            }
+
+            // ????
+            const otherOperationSection = document.getElementById('otherOperationSection');
+            otherOperationSection.innerHTML = '';
+            
+            if (data.otherOperation.length === 0) {
+                addOtherOperation();
+            } else {
+                data.otherOperation.forEach((item, index) => {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'dual-input-row';
+                    newRow.innerHTML = `
+                        <input type="text" class="input-field dual-input" placeholder="Enter surgical procedure name" value="${item.name}">
+                        <input type="text" class="input-field dual-input" placeholder="Enter surgical procedure code" value="${item.code}">
+                        <button type="button" class="delete-btn" onclick="removeOtherOperation(this)">Delete</button>
+                    `;
+                    otherOperationSection.appendChild(newRow);
+                });
+            }
+        }
+
+        // ????
+        function nextQuestionnaire() {
+            // ????
+            saveCurrentQuestionnaire();
+            recordQuestionnaireTime();
+            
+            if (currentQuestionnaire < TOTAL_QUESTIONNAIRES) {
+                currentQuestionnaire++;
+                updateProgress();
+                updateNavigationButtons();
+                loadQuestionnaireData(currentQuestionnaire);
+                
+                // ????
+                const data = questionnairesData[currentQuestionnaire - 1];
+                if (!data.startTime) {
+                    data.startTime = getTimingNow();
+                }
+                currentQuestionnaireStartTime = getTimingNow();
+                updateTimerDisplays();
+                scrollToTop();
+            }
+        }
+
+        // ????
+        function prevQuestionnaire() {
+            // ????
+            saveCurrentQuestionnaire();
+            recordQuestionnaireTime();
+            
+            if (currentQuestionnaire > 1) {
+                currentQuestionnaire--;
+                updateProgress();
+                updateNavigationButtons();
+                loadQuestionnaireData(currentQuestionnaire);
+                
+                // ????
+                const data = questionnairesData[currentQuestionnaire - 1];
+                if (!data.startTime) {
+                    data.startTime = getTimingNow();
+                }
+                currentQuestionnaireStartTime = getTimingNow();
+                updateTimerDisplays();
+            }
+        }
+
+        // ????
+        function recordQuestionnaireTime() {
+            const now = getTimingNow();
+            const data = questionnairesData[currentQuestionnaire - 1];
+            
+            if (data.startTime) {
+                data.endTime = now;
+                // ????
+                const currentSessionDuration = now - data.startTime;
+                data.duration = (data.duration || 0) + currentSessionDuration;
+                data.startTime = null;
+            }
+        }
+
+        // ????
+        function addOtherDiagnosis() {
+            const section = document.getElementById('otherDiagnosisSection');
+            const newRow = document.createElement('div');
+            newRow.className = 'dual-input-row';
+            newRow.innerHTML = `
+                <input type="text" class="input-field dual-input" placeholder="Enter secondary diagnosis name">
+                <input type="text" class="input-field dual-input" placeholder="Enter secondary diagnosis code">
+                <button type="button" class="delete-btn" onclick="removeOtherDiagnosis(this)">Delete</button>
+            `;
+            section.appendChild(newRow);
+        }
+
+        // ????
+        function removeOtherDiagnosis(button) {
+            const section = document.getElementById('otherDiagnosisSection');
+            if (section.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                alert('At least one secondary diagnosis entry must be retained.');
+            }
+        }
+
+        // ????
+        function addOtherOperation() {
+            const section = document.getElementById('otherOperationSection');
+            const newRow = document.createElement('div');
+            newRow.className = 'dual-input-row';
+            newRow.innerHTML = `
+                <input type="text" class="input-field dual-input" placeholder="Enter surgical procedure name">
+                <input type="text" class="input-field dual-input" placeholder="Enter surgical procedure code">
+                <button type="button" class="delete-btn" onclick="removeOtherOperation(this)">Delete</button>
+            `;
+            section.appendChild(newRow);
+        }
+
+        // ????
+        function removeOtherOperation(button) {
+            const section = document.getElementById('otherOperationSection');
+            if (section.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                alert('At least one surgical procedure entry must be retained.');
+            }
+        }
+
+        // ????
+        function validateNumberInput(input) {
+            input.value = input.value.replace(/[^\d]/g, '');
+        }
+
+        // ????
+        function validateCostInput(input) {
+            input.value = input.value.replace(/[^\d.]/g, '');
+            
+            const parts = input.value.split('.');
+            if (parts.length > 2) {
+                input.value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            if (parts.length === 2 && parts[1].length > 2) {
+                input.value = parts[0] + '.' + parts[1].substring(0, 2);
+            }
+        }
+
+        // ????
+        function validateAgeInput(input) {
+            const ageYears = document.getElementById('ageYears');
+            const ageDays = document.getElementById('ageDays');
+            
+            if (input === ageYears) {
+                ageYears.value = ageYears.value.replace(/[^\d]/g, '');
+                if (ageYears.value !== '' && ageDays.value !== '') {
+                    ageDays.value = '';
+                }
+            } else if (input === ageDays) {
+                ageDays.value = ageDays.value.replace(/[^\d]/g, '');
+                if (ageDays.value !== '' && ageYears.value !== '') {
+                    ageYears.value = '';
+                }
+            }
+
+            updateAgeVisibility();
+            updateNewbornWeightVisibility();
+        }
+
+        // ????
+        function generateJsonData(questionnaireData) {
+            const genderText = (questionnaireData.gender || '').trim();
+            let genderCode = '';
+            if (genderText === 'male') {
+                genderCode = '1';
+            } else if (genderText === 'female') {
+                genderCode = '2';
+            }
+
+            const dischargeText = (questionnaireData.dischargeType || '').trim();
+            let dischargeCode = '';
+            if (dischargeText.includes("discharge as doctor's orders")) {
+                dischargeCode = '1';
+            } else if (dischargeText.includes("transfer to another hospital")) {
+                dischargeCode = '2';
+            } else if (dischargeText.includes('community health service centers') || dischargeText.includes('township health centers')) {
+                dischargeCode = '3';
+            } else if (dischargeText.includes("discharge as non-doctor's orders")) {
+                dischargeCode = '4';
+            } else if (dischargeText.includes('death')) {
+                dischargeCode = '5';
+            } else if (dischargeText) {
+                dischargeCode = '9';
+            }
+
+            const otherDiagnosisNames = [];
+            const otherDiagnosisCodes = [];
+            questionnaireData.otherDiagnosis.forEach(item => {
+                if (item.name) otherDiagnosisNames.push(item.name);
+                if (item.code) otherDiagnosisCodes.push(item.code);
+            });
+
+            const otherOperationNames = [];
+            const otherOperationCodes = [];
+            questionnaireData.otherOperation.forEach(item => {
+                if (item.name) otherOperationNames.push(item.name);
+                if (item.code) otherOperationCodes.push(item.code);
+            });
+
+            return {
+                "age": [questionnaireData.ageYears || ''],
+                "age less than 1 year old": [questionnaireData.ageDays || ''],
+                "Newborn birth weight (g)": [questionnaireData.newbornBirthWeight || ''],
+                "Newborn admission weight (g)": [questionnaireData.newbornAdmissionWeight || ''],
+                "number of hospital days": [questionnaireData.hospitalDays || ''],
+                "Outpatient (emergency) diagnosis": [questionnaireData.emergencyDiagnosis || ''],
+                "Outpatient (emergency) diagnosis code": [questionnaireData.emergencyDiagnosisCode || ''],
+                "Primary diagnosis": [questionnaireData.mainDiagnosisName || ''],
+                "Primary diagnosis code": [questionnaireData.mainDiagnosisCode || ''],
+                "Secondary diagnosis names": otherDiagnosisNames,
+                "Secondary diagnosis codes": otherDiagnosisCodes,
+                "Surgical procedure names": otherOperationNames,
+                 "Surgical procedure codes": otherOperationCodes,
+                "Pathological diagnosis": [questionnaireData.pathologyDiagnosisName || ''],
+                "Pathological diagnosis code": [questionnaireData.pathologyDiagnosisCode || ''],
+                "hospitalization expenses (RMB): total expenses": [questionnaireData.totalCost || ''],
+                "name of the medical institution to be received": [questionnaireData.receivingInstitutionName || ''],
+                "discharge method": [
+                    dischargeCode,
+                    questionnaireData.dischargeType
+                ],
+                "gender": [
+                    genderCode,
+                    questionnaireData.gender
+                ]
+            };
+        }
+
+        // ????
+        function submitAllQuestionnaires() {
+            saveCurrentQuestionnaire();
+            recordQuestionnaireTime();
+            
+            // ????
+            clearInterval(totalTimerInterval);
+            clearInterval(currentTimerInterval);
+            const pauseBtn = document.getElementById('pauseTimerBtn');
+            pauseBtn.disabled = true;
+            pauseBtn.textContent = 'Pause timer';
+            
+            // ????
+            const totalEndTime = getTimingNow();
+            const totalDuration = totalEndTime - totalStartTime - totalPausedDuration;
+            
+            // ????
+            const allQuestionnairesData = [];
+            for (let i = 0; i < TOTAL_QUESTIONNAIRES; i++) {
+                const jsonData = generateJsonData(questionnairesData[i]);
+                
+                // ????
+                const timeInfo = {
+                    startTime: questionnairesData[i].startTime ? questionnairesData[i].startTime.toISOString() : null,
+                    endTime: questionnairesData[i].endTime ? questionnairesData[i].endTime.toISOString() : null,
+                    duration: questionnairesData[i].duration || 0,
+                    durationFormatted: formatTime(questionnairesData[i].duration || 0)
+                };
+                
+                allQuestionnairesData.push({
+                    questionnaireNumber: i + 1,
+                    data: jsonData,
+                    timeInfo: timeInfo
+                });
+            }
+
+            // ????
+            const summaryData = {
+                totalStartTime: totalStartTime.toISOString(),
+                totalEndTime: totalEndTime.toISOString(),
+                totalDuration: totalDuration,
+                totalDurationFormatted: formatTime(totalDuration),
+                questionnaires: allQuestionnairesData
+            };
+
+            // ????
+            const jsonString = JSON.stringify(summaryData, null, 2);
+            
+            // ????
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // ????
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            a.download = `01_control_group_DRG_information_extraction_results_10_cases_with_time_statistics_${timestamp}.json`;
+            
+            // ????
+            document.body.appendChild(a);
+            a.click();
+            
+            // ????
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+        }
+
+        // ????
+        document.addEventListener('DOMContentLoaded', () => {
+            initSystem();
+            updateAgeVisibility();
+        });
+    </script>
+</body>
+</html>
+
