@@ -1,0 +1,3284 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DRG Report Summary</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background-color: #3498db;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .file-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .file-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #34495e;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .file-item:hover {
+            background-color: #34495e;
+        }
+        
+        .file-item.active {
+            background-color: #3498db;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+        }
+        
+        .report-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        th:first-child {
+            width: 200px;
+        }
+        
+        th:last-child {
+            width: auto;
+        }
+        
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            background-color: white;
+            vertical-align: middle;
+        }
+        
+        tr:hover td {
+            background-color: #f8f9fa;
+        }
+        
+        .field-name {
+            font-weight: 500;
+            color: #2c3e50;
+            background-color: #f0f7ff;
+        }
+        
+        .value-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .diagnosis-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .diagnosis-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+        
+        .diagnosis-text {
+            flex: 1;
+            word-break: break-word;
+            font-weight: 500;
+        }
+        
+        .copy-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .copy-name-btn, .copy-code-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
+        }
+        
+        .copy-name-btn:hover {
+            background-color: #219a52;
+        }
+        
+        .copy-code-btn {
+            background-color: #3498db;
+        }
+        
+        .copy-code-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .copy-name-btn.copied, .copy-code-btn.copied {
+            background-color: #e74c3c;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .copy-name-btn:active, .copy-code-btn:active {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transform: translateY(1px);
+        }
+        
+        .row-copy-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
+        }
+        
+        .row-copy-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .row-copy-btn.copied {
+            background-color: #27ae60;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .row-copy-btn:active {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transform: translateY(1px);
+        }
+        
+        .notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 16px;
+        }
+        
+        .file-count {
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #bdc3c7;
+            border-top: 1px solid #34495e;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .home-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .sort-panel {
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #f7fbff 0%, #eef6ff 100%);
+            border: 1px solid #d6e8fb;
+            border-radius: 8px;
+            padding: 18px 20px;
+            box-shadow: 0 2px 10px rgba(52, 152, 219, 0.08);
+        }
+
+        .sort-panel-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .sort-panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .sort-panel-desc {
+            font-size: 13px;
+            color: #5d6d7e;
+            line-height: 1.5;
+        }
+
+        .sort-reset-btn,
+        .sort-drag-handle {
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .sort-reset-btn {
+            padding: 8px 14px;
+            background-color: #3498db;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .sort-reset-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .sort-order-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sort-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background-color: white;
+            border: 1px solid #dbe7f3;
+            border-radius: 6px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .sort-item.dragging {
+            opacity: 0.55;
+            background-color: #f0f7ff;
+        }
+
+        .sort-item.drag-over-top {
+            border-top: 2px solid #3498db;
+            box-shadow: 0 -2px 0 rgba(52, 152, 219, 0.12);
+        }
+
+        .sort-item.drag-over-bottom {
+            border-bottom: 2px solid #3498db;
+            box-shadow: 0 2px 0 rgba(52, 152, 219, 0.12);
+        }
+
+        .sort-index {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .sort-label {
+            flex: 1;
+            color: #2c3e50;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .sort-drag-handle {
+            width: 32px;
+            height: 32px;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: grab;
+        }
+
+        .sort-drag-handle:hover {
+            background-color: #d5dde0;
+        }
+
+        .sort-reset-btn:active,
+        .sort-drag-handle:active {
+            transform: translateY(1px);
+        }
+
+        .home-card {
+            padding: 28px;
+        }
+
+        .home-card h1 {
+            margin-top: 0;
+        }
+
+        .home-card p {
+            color: #5d6d7e;
+            line-height: 1.7;
+            margin: 0 0 10px;
+        }
+    
+        /* ICD_VALIDATION_STYLE_START */
+        .icd-error-code {
+            color: #b91c1c;
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-radius: 4px;
+            padding: 1px 4px;
+            font-weight: 700;
+        }
+
+        .icd-suggestion {
+            margin-left: 8px;
+            color: #991b1b;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        /* ICD_VALIDATION_STYLE_END */
+
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            DRG Report File List
+        </div>
+        <ul class="file-list" id="fileList">
+            <li class="file-item active" id="homeNavItem" onclick="showHomePage()">Home (sort settings)</li>
+            <li class="file-item" onclick="showReport('01_drg_fields.json')">DRG Report 01</li>
+            <li class="file-item " onclick="showReport('02_drg_fields.json')">DRG Report 02</li>
+            <li class="file-item " onclick="showReport('03_drg_fields.json')">DRG Report 03</li>
+            <li class="file-item " onclick="showReport('04_drg_fields.json')">DRG Report 04</li>
+            <li class="file-item " onclick="showReport('05_drg_fields.json')">DRG Report 05</li>
+            <li class="file-item " onclick="showReport('06_drg_fields.json')">DRG Report 06</li>
+            <li class="file-item " onclick="showReport('07_drg_fields.json')">DRG Report 07</li>
+            <li class="file-item " onclick="showReport('08_drg_fields.json')">DRG Report 08</li>
+            <li class="file-item " onclick="showReport('09_drg_fields.json')">DRG Report 09</li>
+            <li class="file-item " onclick="showReport('10_drg_fields.json')">DRG Report 10</li>
+            <li class="file-item " onclick="showReport('11_drg_fields.json')">DRG Report 11</li>
+            <li class="file-item " onclick="showReport('12_drg_fields.json')">DRG Report 12</li>
+            <li class="file-item " onclick="showReport('13_drg_fields.json')">DRG Report 13</li>
+            <li class="file-item " onclick="showReport('14_drg_fields.json')">DRG Report 14</li>
+            <li class="file-item " onclick="showReport('15_drg_fields.json')">DRG Report 15</li>
+            <li class="file-item " onclick="showReport('16_drg_fields.json')">DRG Report 16</li>
+            <li class="file-item " onclick="showReport('17_drg_fields.json')">DRG Report 17</li>
+            <li class="file-item " onclick="showReport('18_drg_fields.json')">DRG Report 18</li>
+            <li class="file-item " onclick="showReport('19_drg_fields.json')">DRG Report 19</li>
+            <li class="file-item " onclick="showReport('20_drg_fields.json')">DRG Report 20</li>
+            <li class="file-item " onclick="showReport('21_drg_fields.json')">DRG Report 21</li>
+        </ul>
+        <div class="file-count">
+            21 files in total
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="home-container" id="homeContainer">
+            <div class="sort-panel">
+                <div class="sort-panel-header">
+                    <div>
+                        <div class="sort-panel-title">Field Sort Settings</div>
+                        <div class="sort-panel-desc">This is a separate home page. Drag the fields below to adjust their order; subsequent DRG reports will be displayed in this order.</div>
+                    </div>
+                    <button class="sort-reset-btn" onclick="resetSortOrder()">Restore default</button>
+                </div>
+                <ul class="sort-order-list" id="sortOrderList"></ul>
+            </div>
+
+            <div class="report-container home-card">
+                <h1>DRG Report Home</h1>
+                <p>First drag the 10 fields on this page to rearrange the fields.</p>
+                <p>After adjustment, select any DRG report from the left; all pages will be displayed in the order set here.</p>
+                <p>The sorting panel will not be shown when viewing reports later. To readjust the order, click Home (sort settings) on the left.</p>
+            </div>
+        </div>
+        <div class="report-container hidden" id="reportContainer">
+            <div class="no-data">Please select a file from the left to view the report.</div>
+        </div>
+    </div>
+    
+    <script>
+
+        // ICD_VALIDATION_DATA_START
+        const icdValidationErrors = {
+            "03_drg_fields.json||surgical procedures and codes||4.0713": {
+                        "file": "03_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 1,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "peripheral nerve lesion resection",
+                        "extracted_code": "4.0713",
+                        "suggested_codes": [
+                                    "04.0713"
+                        ],
+                        "suggested_names": [
+                                    "周围神经病损切除术"
+                        ],
+                        "query_error": ""
+            },
+            "05_drg_fields.json||surgical procedures and codes||2.6400X003": {
+                        "file": "05_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 1,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "filtration surgery [trabeculectomy]",
+                        "extracted_code": "2.6400X003",
+                        "suggested_codes": [
+                                    "12.6400",
+                                    "12.6400X003"
+                        ],
+                        "suggested_names": [
+                                    "外路小梁切除术",
+                                    "滤帘切除术[小梁切除术]"
+                        ],
+                        "query_error": ""
+            },
+            "05_drg_fields.json||surgical procedures and codes||2.1403": {
+                        "file": "05_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 2,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "peripheral iridectomy",
+                        "extracted_code": "2.1403",
+                        "suggested_codes": [
+                                    "12.1403",
+                                    "02.1403"
+                        ],
+                        "suggested_names": [
+                                    "虹膜周边切除术",
+                                    "第三脑室脉络丛切除灼烧术"
+                        ],
+                        "query_error": ""
+            },
+            "05_drg_fields.json||surgical procedures and codes||0.9900X003": {
+                        "file": "05_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 3,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "conjunctival suture removal",
+                        "extracted_code": "0.9900X003",
+                        "suggested_codes": [
+                                    "50.9900",
+                                    "50.9900X003",
+                                    "80.9900",
+                                    "80.9900X003"
+                        ],
+                        "suggested_names": [
+                                    "肝的其他手术",
+                                    "肝止血术",
+                                    "其他特指部位关节的其他切除术",
+                                    "颈椎后路小关节切除术"
+                        ],
+                        "query_error": ""
+            },
+            "10_drg_fields.json||surgical procedures and codes||3.2702": {
+                        "file": "10_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 2,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "lung biopsy under endobronchial ultrasound bronchoscopy",
+                        "extracted_code": "3.2702",
+                        "suggested_codes": [
+                                    "33.2702"
+                        ],
+                        "suggested_names": [
+                                    "超声支气管镜下肺活组织检查"
+                        ],
+                        "query_error": ""
+            },
+            "10_drg_fields.json||surgical procedures and codes||3.2405": {
+                        "file": "10_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 3,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "bronchoscopic brushing",
+                        "extracted_code": "3.2405",
+                        "suggested_codes": [
+                                    "33.2405"
+                        ],
+                        "suggested_names": [
+                                    "气管镜刷检术"
+                        ],
+                        "query_error": ""
+            },
+            "10_drg_fields.json||surgical procedures and codes||0.1100X005": {
+                        "file": "10_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 5,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "endobronchial ultrasound-guided transbronchial needle aspiration of mediastinal lymph node",
+                        "extracted_code": "0.1100X005",
+                        "suggested_codes": [
+                                    "50.1100",
+                                    "50.1100X005",
+                                    "40.1100",
+                                    "40.1100X005"
+                        ],
+                        "suggested_names": [
+                                    "闭合性(经皮)[针吸]肝活组织检查",
+                                    "经皮肝穿刺活检",
+                                    "淋巴结构的活组织检查",
+                                    "经支气管超声内镜纵隔淋巴结穿刺活检术"
+                        ],
+                        "query_error": ""
+            },
+            "12_drg_fields.json||surgical procedures and codes||1.8503": {
+                        "file": "12_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 2,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "endoscopic duodenal papillotomy",
+                        "extracted_code": "1.8503",
+                        "suggested_codes": [
+                                    "51.8503",
+                                    "21.8503"
+                        ],
+                        "suggested_names": [
+                                    "内镜下十二指肠乳头肌切开术(EST)",
+                                    "鼻甲移植物植入术"
+                        ],
+                        "query_error": ""
+            },
+            "12_drg_fields.json||surgical procedures and codes||1.8600X002": {
+                        "file": "12_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 3,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "endoscopic nasobiliary drainage",
+                        "extracted_code": "1.8600X002",
+                        "suggested_codes": [
+                                    "51.8600",
+                                    "51.8600X002"
+                        ],
+                        "suggested_names": [
+                                    "内镜下鼻胆引流管置入",
+                                    "内镜下鼻胆管引流术"
+                        ],
+                        "query_error": ""
+            },
+            "12_drg_fields.json||surgical procedures and codes||1.2300": {
+                        "file": "12_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 4,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "laparoscopic cholecystectomy",
+                        "extracted_code": "1.2300",
+                        "suggested_codes": [
+                                    "91.2300",
+                                    "71.2300",
+                                    "71.2300X001",
+                                    "51.2300",
+                                    "01.2300",
+                                    "81.2300",
+                                    "81.2300X002",
+                                    "81.2300X003",
+                                    "81.2300X004",
+                                    "81.2300X005"
+                        ],
+                        "suggested_names": [
+                                    "肾、子宫、肾周和输尿管周围组织标本的显微镜检查，培养和敏感试验",
+                                    "巴多林腺(囊肿)袋形合缝术[造袋术]",
+                                    "前庭大腺造袋术",
+                                    "腹腔镜下胆囊切除术",
+                                    "颅骨切开术部位的再切开",
+                                    "肩关节固定术",
+                                    "肩关节喙突截骨移位固定术[Latajet手术]",
+                                    "肩关节肩盂植骨固定术",
+                                    "肩关节镜下盂唇固定术",
+                                    "肩关节盂唇固定术"
+                        ],
+                        "query_error": ""
+            },
+            "12_drg_fields.json||surgical procedures and codes||4.1300X001": {
+                        "file": "12_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 5,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "gastroscopy",
+                        "extracted_code": "4.1300X001",
+                        "suggested_codes": [
+                                    "44.1300",
+                                    "44.1300X001"
+                        ],
+                        "suggested_names": [
+                                    "其他胃镜检查",
+                                    "胃镜检查"
+                        ],
+                        "query_error": ""
+            },
+            "14_drg_fields.json||surgical procedures and codes||5.6902": {
+                        "file": "14_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 1,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "recent obstetric perineal laceration repair",
+                        "extracted_code": "5.6902",
+                        "suggested_codes": [
+                                    "75.6902"
+                        ],
+                        "suggested_names": [
+                                    "近期产科会阴裂伤修补术"
+                        ],
+                        "query_error": ""
+            },
+            "14_drg_fields.json||surgical procedures and codes||3.5900X002": {
+                        "file": "14_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 2,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "assisted vaginal delivery in cephalic presentation",
+                        "extracted_code": "3.5900X002",
+                        "suggested_codes": [
+                                    "93.5900",
+                                    "93.5900X002",
+                                    "73.5900",
+                                    "73.5900X002"
+                        ],
+                        "suggested_names": [
+                                    "其他制动术、压迫和伤口维护",
+                                    "外固定架固定",
+                                    "其他手法助产",
+                                    "头位阴道助产"
+                        ],
+                        "query_error": ""
+            },
+            "15_drg_fields.json||surgical procedures and codes||1.8100": {
+                        "file": "15_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 1,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "nasal laceration suture",
+                        "extracted_code": "1.8100",
+                        "suggested_codes": [
+                                    "91.8100",
+                                    "51.8100",
+                                    "81.8100",
+                                    "21.8100"
+                        ],
+                        "suggested_names": [
+                                    "其他部位标本的显微镜检查，细菌涂片",
+                                    "奥狄氏括约肌扩张",
+                                    "肩关节部分置换",
+                                    "鼻裂伤缝合术"
+                        ],
+                        "query_error": ""
+            },
+            "18_drg_fields.json||surgical procedures and codes||4.6X02": {
+                        "file": "18_drg_fields.json",
+                        "field": "surgical procedures and codes",
+                        "item_index": 1,
+                        "code_type": "procedure",
+                        "dictionary_used": "ICD-9-CM3 NHSA 2.0",
+                        "extracted_name": "removal of vitreous silicone oil",
+                        "extracted_code": "4.6X02",
+                        "suggested_codes": [
+                                    "04.6X02",
+                                    "14.6X02",
+                                    "24.6X02",
+                                    "34.6X02"
+                        ],
+                        "suggested_names": [
+                                    "耳大神经移位术",
+                                    "玻璃体硅油取出术",
+                                    "牙冠龈盖切除术",
+                                    "胸腔镜下胸膜划痕术"
+                        ],
+                        "query_error": ""
+            }
+};
+        // ICD_VALIDATION_DATA_END
+
+        // Store all report data
+        const reportData = {
+            "01_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "right eye varicella-zoster virus anterior uveitis",
+                                                            "code": "H20.003",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "herpes zoster iridocyclitis",
+                                                            "code": "B02.305+H22.0",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "44",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "5",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "4050.67",
+                                    "single"
+                        ]
+            ],
+            "02_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "multiple colonic polyps",
+                                                            "code": "K63.502",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "benign tumor of sigmoid colon",
+                                                            "code": "D12.500",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "postprocedural intestinal hemorrhage",
+                                                            "code": "T81.026",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "chronic gastritis",
+                                                            "code": "K29.500",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "internal hemorrhoids",
+                                                            "code": "K64.805",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "endoscopic colonic mucosal resection (EMR)",
+                                                            "code": "45.4307",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "endoscopic colon hemostasis",
+                                                            "code": "45.4304",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "tubular adenoma (sigmoid colon)",
+                                                            "code": "D12.500",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "44",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "7",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "11817.68",
+                                    "single"
+                        ]
+            ],
+            "03_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "neck tumor",
+                                                            "code": "R22.100",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "benign tumors of the cervical peripheral nerves and autonomic nerves",
+                                                            "code": "D36.102",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "peripheral nerve lesion resection",
+                                                            "code": "4.0713",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "schwannoma",
+                                                            "code": "D36.102",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "50",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "3",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "14889.03",
+                                    "single"
+                        ]
+            ],
+            "04_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "right eye pterygium",
+                                                            "code": "H11.000",
+                                                            "is_combined": true
+                                                },
+                                                {
+                                                            "name": "right eye glaucoma",
+                                                            "code": "H40.102",
+                                                            "is_combined": true
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "uncontrolled intraocular pressure after glaucoma surgery",
+                                                            "code": "H40.000x004",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "pterygium",
+                                                            "code": "H11.000",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "46",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "3",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "3640.05",
+                                    "single"
+                        ]
+            ],
+            "05_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "right eye glaucoma",
+                                                            "code": "H40.900",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "glaucoma secondary to iridocyclitis",
+                                                            "code": "H40.401",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "postprocedural filtering bleb infection",
+                                                            "code": "H59.813",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "chronic uveitis [chronic uveal inflammation]",
+                                                            "code": "H20.100x003",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "filtration surgery [trabeculectomy]",
+                                                            "code": "2.6400x003",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "peripheral iridectomy",
+                                                            "code": "2.1403",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "conjunctival suture removal",
+                                                            "code": "0.9900x003",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "47",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "21",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "2; transfer to another hospital as doctor's orders, name of the medical institution to be received: Peking University Third Hospital",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "14752.33",
+                                    "single"
+                        ]
+            ],
+            "06_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "right otitis externa",
+                                                            "code": "H60.901",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "infective otitis externa, other",
+                                                            "code": "H60.300",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "59",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "3",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "3100.68",
+                                    "single"
+                        ]
+            ],
+            "07_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "postoperative recurrence of left middle ear cholesteatoma",
+                                                            "code": "H71.X00",
+                                                            "is_combined": true
+                                                },
+                                                {
+                                                            "name": "vertigo",
+                                                            "code": "R42.X00X001",
+                                                            "is_combined": true
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "postoperative recurrence of cholesteatoma",
+                                                            "code": "H95.000x001",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "sick sinus syndrome",
+                                                            "code": "I49.500",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "vertigo",
+                                                            "code": "R42.x00x001",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "procedure not performed due to contraindication",
+                                                            "code": "Z53.000",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "60",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "3",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "14889.03",
+                                    "single"
+                        ]
+            ],
+            "08_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "dizziness",
+                                                            "code": "R42.X00X004",
+                                                            "is_combined": true
+                                                },
+                                                {
+                                                            "name": "unsteady gait",
+                                                            "code": "R26.800",
+                                                            "is_combined": true
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "cerebral infarction due to vertebral artery stenosis",
+                                                            "code": "I63.208",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "multiple cerebral infarctions",
+                                                            "code": "I63.905",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "multiple sclerosis and stenosis of craniocerebral vessels",
+                                                            "code": "I67.200",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "type 2 diabetes mellitus",
+                                                            "code": "E11.900",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "percutaneous vertebral artery stent implantation",
+                                                            "code": "00.6400X009",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "single-vessel stent insertion",
+                                                            "code": "00.4500",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "percutaneous vertebral artery balloon angioplasty",
+                                                            "code": "00.6102",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "single-vessel procedure",
+                                                            "code": "00.4000",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "cerebral angiography",
+                                                            "code": "88.4101",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "64",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "15",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    ";",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "38453.21",
+                                    "single"
+                        ]
+            ],
+            "09_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "right pneumothorax",
+                                                            "code": "J93.900",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "ruptured pulmonary bulla",
+                                                            "code": "J43.902",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "spontaneous pneumothorax",
+                                                            "code": "J93.100x001",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "thyroid nodule",
+                                                            "code": "E04.101",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "thoracoscopic pulmonary bullectomy",
+                                                            "code": "32.2002",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "closed thoracic drainage",
+                                                            "code": "34.0401",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "34",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "11",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "26796.41",
+                                    "single"
+                        ]
+            ],
+            "10_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "pulmonary shadow, cause to be determined",
+                                                            "code": "R91.X00X001",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "coal workers' pneumoconiosis",
+                                                            "code": "J60.x00",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "mediastinal lymphadenopathy",
+                                                            "code": "R59.010",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "hilar lymphadenopathy",
+                                                            "code": "R59.009",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "bronchoscopic lung lavage",
+                                                            "code": "33.9903",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "lung biopsy under endobronchial ultrasound bronchoscopy",
+                                                            "code": "3.2702",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "bronchoscopic brushing",
+                                                            "code": "3.2405",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "diagnostic bronchoalveolar lavage under bronchoscopy",
+                                                            "code": "[BAL]33.2400X002",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "endobronchial ultrasound-guided transbronchial needle aspiration of mediastinal lymph node",
+                                                            "code": "0.1100x005",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "carbon dust deposition changes in lung tissue; reactive lymph node hyperplasia",
+                                                            "code": "J60.x00",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "45",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "18",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "45637.22",
+                                    "single"
+                        ]
+            ],
+            "11_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "tracheoesophageal fistula",
+                                                            "code": "J95.004",
+                                                            "is_combined": true
+                                                },
+                                                {
+                                                            "name": "pulmonary infection",
+                                                            "code": "J18.900",
+                                                            "is_combined": true
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "tracheoesophageal fistula after tracheostomy",
+                                                            "code": "J95.004",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "pneumonia",
+                                                            "code": "J18.900",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "postoperative pneumothorax",
+                                                            "code": "J95.804",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "tracheostomy status",
+                                                            "code": "Z93.000",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "repair of tracheoesophageal fistula",
+                                                            "code": "31.7301",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "closed thoracic drainage",
+                                                            "code": "34.0401",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "gastroscopy",
+                                                            "code": "44.1300x001",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "50",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "28",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "87876.51",
+                                    "single"
+                        ]
+            ],
+            "12_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "common bile duct stones",
+                                                            "code": "K80.404",
+                                                            "is_combined": true
+                                                },
+                                                {
+                                                            "name": "cholecystolithiasis",
+                                                            "code": "K80.101",
+                                                            "is_combined": true
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "common bile duct stones with chronic cholecystitis",
+                                                            "code": "K80.404",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "cholecystolithiasis with chronic cholecystitis",
+                                                            "code": "K80.101",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "renal calculus",
+                                                            "code": "N20.000",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "chronic gastritis",
+                                                            "code": "K29.500",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "duodenoscopic common bile duct incision and stone extraction (EST)",
+                                                            "code": "51.8802",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "endoscopic duodenal papillotomy",
+                                                            "code": "1.8503",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "endoscopic nasobiliary drainage",
+                                                            "code": "1.8600x002",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "laparoscopic cholecystectomy",
+                                                            "code": "1.2300",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "gastroscopy",
+                                                            "code": "4.1300x001",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "(gallbladder) chronic cholecystitis with cholesterol crystalline polyp",
+                                                            "code": "K81.100",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "31",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "11",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "36617.47",
+                                    "single"
+                        ]
+            ],
+            "13_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "early pregnancy",
+                                                            "code": "O02.001",
+                                                            "is_combined": true
+                                                },
+                                                {
+                                                            "name": "uterus didelphys malformation",
+                                                            "code": "Q51.201",
+                                                            "is_combined": true
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "early medical abortion complicated by pelvic infection",
+                                                            "code": "O04.503",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "congenital uterus didelphys with single cervix",
+                                                            "code": "Q51.201",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "therapeutic abortion by laparoscopic uterine incision",
+                                                            "code": "74.9100X001",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "ultrasound-guided electric vacuum aspiration abortion",
+                                                            "code": "69.5102",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "23",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "10",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "13515.65",
+                                    "single"
+                        ]
+            ],
+            "14_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "39+6 weeks of pregnancy awaiting delivery",
+                                                            "code": "O26.900x506",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "secondary uterine inertia",
+                                                            "code": "O62.100",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "immediate postpartum hemorrhage",
+                                                            "code": "O72.101",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "first-degree perineal laceration during delivery",
+                                                            "code": "O70.000",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "normal cephalic vaginal delivery",
+                                                            "code": "O80.000",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "39 weeks of pregnancy",
+                                                            "code": "O26.900X506",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "one pregnancy",
+                                                            "code": "O26.900X602",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "one delivery",
+                                                            "code": "O26.900X702",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "single live birth",
+                                                            "code": "Z37.000x001",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "recent obstetric perineal laceration repair",
+                                                            "code": "5.6902",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "assisted vaginal delivery in cephalic presentation",
+                                                            "code": "3.5900x002",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "30",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "5",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "9400.83",
+                                    "single"
+                        ]
+            ],
+            "15_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "nasal trauma",
+                                                            "code": "S01.200x011",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "open injury of nasal epidermis",
+                                                            "code": "S01.200x011",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "nasal laceration suture",
+                                                            "code": "1.8100",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "40",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "3",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "10200.98",
+                                    "single"
+                        ]
+            ],
+            "16_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "left eye trauma",
+                                                            "code": "S05.802",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "optic nerve injury",
+                                                            "code": "S04.000x001",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "eyelid laceration",
+                                                            "code": "S01.101",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "ocular contusion",
+                                                            "code": "S05.802",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "24",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "6",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "7043.56",
+                                    "single"
+                        ]
+            ],
+            "17_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "left eye lens dislocation",
+                                                            "code": "S05.806",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "traumatic lens dislocation",
+                                                            "code": "S05.806",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "procedure not performed due to the patient's family reasons",
+                                                            "code": "Z53.800x001",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "70",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "2",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "4; discharge as non-doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "3038.78",
+                                    "single"
+                        ]
+            ],
+            "18_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "removal of intraocular silicone oil",
+                                                            "code": "Z48.801",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "removal of intraocular silicone oil",
+                                                            "code": "Z48.801",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "removal of vitreous silicone oil",
+                                                            "code": "4.6x02",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "51",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "3",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "5654.47",
+                                    "single"
+                        ]
+            ],
+            "19_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "nasopharyngeal carcinoma",
+                                                            "code": "C11.900",
+                                                            "is_combined": true
+                                                },
+                                                {
+                                                            "name": "bilateral cavitary pulmonary tuberculosis",
+                                                            "code": "A16.207",
+                                                            "is_combined": true
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "radiotherapy for malignant tumor",
+                                                            "code": "Z51.003",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "maintenance chemotherapy for malignant tumor",
+                                                            "code": "Z51.103",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "malignant neoplasm of nasopharynx",
+                                                            "code": "C11.900",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "secondary malignant neoplasm of cervical lymph nodes",
+                                                            "code": "C77.002",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "bone marrow suppression after chemotherapy",
+                                                            "code": "D61.101",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "cavitary pulmonary tuberculosis",
+                                                            "code": "A16.207",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "tuberculous pleurisy",
+                                                            "code": "A16.500x004",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "intensity-modulated conformal radiotherapy",
+                                                            "code": "[IMRT]92.2400X003",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "intravenous chemotherapy drug administration",
+                                                            "code": "99.2503",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "56",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "55",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "110385.12",
+                                    "single"
+                        ]
+            ],
+            "20_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "postoperative follow-up after right breast cancer surgery",
+                                                            "code": "Z51.809",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "endocrine therapy after tumor surgery",
+                                                            "code": "Z51.809",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "malignant neoplasm of upper-outer quadrant of breast",
+                                                            "code": "C50.400x001",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "multiple hepatic cysts",
+                                                            "code": "K76.806",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "renal calculus",
+                                                            "code": "N20.000",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "2; female",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "48",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "2",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "1; discharge as doctor's orders",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "6843.27",
+                                    "single"
+                        ]
+            ],
+            "21_drg_fields.json": [
+                        [
+                                    "outpatient or emergency diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "traumatic craniocerebral injury",
+                                                            "code": "S06.900",
+                                                            "is_combined": true
+                                                },
+                                                {
+                                                            "name": "femoral neck fracture",
+                                                            "code": "S72.000",
+                                                            "is_combined": true
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "primary diagnosis name and code",
+                                    [
+                                                {
+                                                            "name": "traumatic brainstem injury",
+                                                            "code": "S06.803",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "secondary diagnoses and codes",
+                                    [
+                                                {
+                                                            "name": "sellar meningioma",
+                                                            "code": "D32.001",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "femoral neck fracture",
+                                                            "code": "S72.000",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "hypertension",
+                                                            "code": "I10.X02",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "staphylococcal pneumonia",
+                                                            "code": "J15.200",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "surgical procedures and codes",
+                                    [
+                                                {
+                                                            "name": "intracranial hematoma evacuation",
+                                                            "code": "06.1406",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "intracranial meningioma resection",
+                                                            "code": "01.5103",
+                                                            "is_combined": false
+                                                },
+                                                {
+                                                            "name": "artificial joint replacement",
+                                                            "code": "81.5101",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "pathological diagnosis and code",
+                                    [
+                                                {
+                                                            "name": "meningioma",
+                                                            "code": "M95300/0",
+                                                            "is_combined": false
+                                                }
+                                    ],
+                                    "diagnosis"
+                        ],
+                        [
+                                    "gender",
+                                    "1; male",
+                                    "single"
+                        ],
+                        [
+                                    "age",
+                                    "48",
+                                    "single"
+                        ],
+                        [
+                                    "age less than 1 year old",
+                                    "",
+                                    "single"
+                        ],
+                        [
+                                    "number of hospital days",
+                                    "82",
+                                    "single"
+                        ],
+                        [
+                                    "discharge method",
+                                    "3; transfer to community health service centers/township health centers as doctor's orders, name of the medical institution to be received: XX Town Community Health Service Center",
+                                    "single"
+                        ],
+                        [
+                                    "hospitalization expenses (RMB): total expenses",
+                                    "27863.15",
+                                    "single"
+                        ]
+            ]
+};
+        
+        function cleanPrefixCodeText(value) {
+            if (value === null || value === undefined) return '';
+            const s = String(value).trim();
+            if (s.includes(';')) {
+                return s.split(';').slice(1).join(';').trim();
+            }
+            return s;
+        }
+
+        const sortSettingsKey = 'drgReportSortOrder';
+        const sortFieldGroups = [
+            { id: 'outpatientDiagnosis', label: 'outpatient or emergency diagnosis and code', fields: ['outpatient or emergency diagnosis and code'], type: 'diagnosis' },
+            { id: 'mainDiagnosis', label: 'primary diagnosis name and code', fields: ['primary diagnosis name and code'], type: 'diagnosis' },
+            { id: 'otherDiagnosis', label: 'secondary diagnoses and codes', fields: ['secondary diagnoses and codes'], type: 'diagnosis' },
+            { id: 'operation', label: 'surgical procedures and codes', fields: ['surgical procedures and codes'], type: 'diagnosis' },
+            { id: 'gender', label: 'gender', fields: ['gender'], type: 'single' },
+            { id: 'ageGroup', label: 'age (years) / newborn age (days)', fields: ['age', 'age less than 1 year old'], type: 'single' },
+            { id: 'hospitalDays', label: 'number of hospital days', fields: ['number of hospital days'], type: 'single' },
+            { id: 'dischargeMode', label: 'discharge method', fields: ['discharge method'], type: 'single' },
+            { id: 'pathology', label: 'pathological diagnosis and code', fields: ['pathological diagnosis and code'], type: 'diagnosis' },
+            { id: 'totalCost', label: 'hospitalization expenses (RMB): total expenses', fields: ['hospitalization expenses (RMB): total expenses'], type: 'single' }
+        ];
+        const sortFieldGroupMap = sortFieldGroups.reduce((result, group) => {
+            result[group.id] = group;
+            return result;
+        }, {});
+        const defaultSortOrder = sortFieldGroups.map(group => group.id);
+        const displayNameMap = {
+            'age': 'age (years)',
+            'age less than 1 year old': 'newborn age (days)',
+            'hospitalization expenses (RMB): total expenses': 'hospitalization expenses (RMB): total expenses'
+        };
+        const homePageId = '__home__';
+        let currentSortOrder = loadSortOrder();
+        let currentReportFile = '';
+        let draggedSortItemId = '';
+        let dragOverSortItemId = '';
+        let dragInsertAfter = false;
+
+        function loadSortOrder() {
+            try {
+                const stored = sessionStorage.getItem(sortSettingsKey);
+                if (!stored) {
+                    return [...defaultSortOrder];
+                }
+                const parsed = JSON.parse(stored);
+                const isValid = Array.isArray(parsed)
+                    && parsed.length === defaultSortOrder.length
+                    && parsed.every(id => sortFieldGroupMap[id]);
+                return isValid ? parsed : [...defaultSortOrder];
+            } catch (error) {
+                return [...defaultSortOrder];
+            }
+        }
+
+        function saveSortOrder() {
+            try {
+                sessionStorage.setItem(sortSettingsKey, JSON.stringify(currentSortOrder));
+            } catch (error) {
+                console.warn('Failed to save sort settings:', error);
+            }
+        }
+
+        function renderSortOrderList() {
+            const list = document.getElementById('sortOrderList');
+            if (!list) {
+                return;
+            }
+
+            list.innerHTML = currentSortOrder.map((id, index) => {
+                const group = sortFieldGroupMap[id];
+                return `
+                    <li
+                        class="sort-item"
+                        data-sort-id="${id}"
+                        draggable="true"
+                        ondragstart="handleSortDragStart(event)"
+                        ondragover="handleSortDragOver(event)"
+                        ondrop="handleSortDrop(event)"
+                        ondragend="handleSortDragEnd()"
+                    >
+                        <span class="sort-index">${index + 1}</span>
+                        <span class="sort-label">${group.label}</span>
+                        <span class="sort-drag-handle" title="Drag to sort">☰</span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function handleSortDragStart(event) {
+            const item = event.currentTarget;
+            draggedSortItemId = item.dataset.sortId || '';
+            item.classList.add('dragging');
+
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', draggedSortItemId);
+            }
+        }
+
+        function handleSortDragOver(event) {
+            event.preventDefault();
+            const item = event.currentTarget;
+            const targetSortId = item.dataset.sortId || '';
+
+            if (!targetSortId || targetSortId === draggedSortItemId) {
+                return;
+            }
+
+            const rect = item.getBoundingClientRect();
+            dragOverSortItemId = targetSortId;
+            dragInsertAfter = event.clientY > rect.top + (rect.height / 2);
+
+            document.querySelectorAll('.sort-item').forEach(sortItem => {
+                sortItem.classList.remove('drag-over-top');
+                sortItem.classList.remove('drag-over-bottom');
+            });
+            item.classList.add(dragInsertAfter ? 'drag-over-bottom' : 'drag-over-top');
+
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = 'move';
+            }
+        }
+
+        function handleSortDrop(event) {
+            event.preventDefault();
+            const sourceSortId = draggedSortItemId || (event.dataTransfer ? event.dataTransfer.getData('text/plain') : '');
+            const targetSortId = dragOverSortItemId || event.currentTarget.dataset.sortId || '';
+            const shouldInsertAfter = dragInsertAfter;
+
+            handleSortDragEnd();
+
+            if (!sourceSortId || !targetSortId || sourceSortId === targetSortId) {
+                return;
+            }
+
+            const updatedOrder = [...currentSortOrder];
+            const fromIndex = updatedOrder.indexOf(sourceSortId);
+            const toIndex = updatedOrder.indexOf(targetSortId);
+
+            if (fromIndex === -1 || toIndex === -1) {
+                return;
+            }
+
+            const [movedItem] = updatedOrder.splice(fromIndex, 1);
+            let insertIndex = shouldInsertAfter ? toIndex + 1 : toIndex;
+            if (fromIndex < toIndex) {
+                insertIndex -= 1;
+            }
+            if (insertIndex < 0) {
+                insertIndex = 0;
+            }
+            if (insertIndex > updatedOrder.length) {
+                insertIndex = updatedOrder.length;
+            }
+            updatedOrder.splice(insertIndex, 0, movedItem);
+            currentSortOrder = updatedOrder;
+            saveSortOrder();
+            renderSortOrderList();
+
+            if (currentReportFile && currentReportFile !== homePageId) {
+                showReport(currentReportFile);
+            }
+        }
+
+        function handleSortDragEnd() {
+            draggedSortItemId = '';
+            dragOverSortItemId = '';
+            dragInsertAfter = false;
+            document.querySelectorAll('.sort-item').forEach(item => {
+                item.classList.remove('dragging');
+                item.classList.remove('drag-over-top');
+                item.classList.remove('drag-over-bottom');
+            });
+        }
+
+        function resetSortOrder() {
+            currentSortOrder = [...defaultSortOrder];
+            saveSortOrder();
+            renderSortOrderList();
+
+            if (currentReportFile && currentReportFile !== homePageId) {
+                showReport(currentReportFile);
+            }
+        }
+
+        function setActiveFileItem(fileName) {
+            document.querySelectorAll('.file-item').forEach(item => {
+                const onClickValue = item.getAttribute('onclick') || '';
+                const isActive = fileName === homePageId
+                    ? onClickValue.includes('showHomePage()')
+                    : onClickValue.includes(`'${fileName}'`);
+                item.classList.toggle('active', isActive);
+            });
+        }
+
+        function updatePageVisibility(isHomePage) {
+            const homeContainer = document.getElementById('homeContainer');
+            const reportContainer = document.getElementById('reportContainer');
+            if (!homeContainer || !reportContainer) {
+                return;
+            }
+
+            homeContainer.classList.toggle('hidden', !isHomePage);
+            reportContainer.classList.toggle('hidden', isHomePage);
+        }
+
+        function showHomePage() {
+            currentReportFile = homePageId;
+            setActiveFileItem(homePageId);
+            updatePageVisibility(true);
+
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.scrollTop = 0;
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function buildOrderedData(data, fieldMap, hideAge) {
+            const orderedData = [];
+            const usedFieldNames = new Set();
+
+            currentSortOrder.forEach(groupId => {
+                const group = sortFieldGroupMap[groupId];
+                if (!group) {
+                    return;
+                }
+
+                if (groupId === 'ageGroup') {
+                    const preferredFieldName = hideAge ? 'age less than 1 year old' : 'age';
+                    const fallbackFieldName = hideAge ? 'age' : 'age less than 1 year old';
+                    const ageItem = fieldMap[preferredFieldName]
+                        || fieldMap[fallbackFieldName]
+                        || [preferredFieldName, '', 'single'];
+
+                    orderedData.push(ageItem);
+                    usedFieldNames.add('age');
+                    usedFieldNames.add('age less than 1 year old');
+                    return;
+                }
+
+                const fieldName = group.fields[0];
+                if (fieldMap[fieldName]) {
+                    orderedData.push(fieldMap[fieldName]);
+                } else if (group.type === 'diagnosis') {
+                    orderedData.push([fieldName, [], 'diagnosis']);
+                } else {
+                    orderedData.push([fieldName, '', 'single']);
+                }
+
+                usedFieldNames.add(fieldName);
+            });
+
+            data.forEach(item => {
+                if (!usedFieldNames.has(item[0])) {
+                    orderedData.push(item);
+                }
+            });
+
+            return orderedData;
+        }
+
+        function hasNumber(value) {
+            if (value === null || value === undefined) return false;
+            return /\d/.test(String(value));
+        }
+
+        function extractMedicalInstitution(value) {
+            if (value === null || value === undefined) return '';
+            const s = String(value);
+            const m = s.match(/name of the medical institution to be received[::]\s*(.+)$/);
+            return m ? m[1].trim() : '';
+        }
+
+        // ICD_VALIDATION_HELPERS_START
+        function escapeHtmlText(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeIcdCode(value) {
+            return String(value == null ? '' : value).trim().toUpperCase().replace(/\s+/g, '');
+        }
+
+        function getIcdValidationError(fileName, fieldName, code) {
+            return icdValidationErrors[`${fileName}||${fieldName}||${normalizeIcdCode(code)}`] || null;
+        }
+
+        function renderValidatedCode(fileName, fieldName, code) {
+            if (String(code || '').includes(',')) {
+                return String(code || '')
+                    .split(',')
+                    .map(part => renderValidatedCode(fileName, fieldName, part.trim()))
+                    .join(', ');
+            }
+            const err = getIcdValidationError(fileName, fieldName, code);
+            const safeCode = escapeHtmlText(code);
+            if (!err) {
+                return safeCode;
+            }
+            return `<span class="icd-error-code">${safeCode}</span>`;
+        }
+        // ICD_VALIDATION_HELPERS_END
+
+        function showReport(fileName) {
+            currentReportFile = fileName;
+            setActiveFileItem(fileName);
+            updatePageVisibility(false);
+            
+            // Display the corresponding report
+            const data = reportData[fileName];
+            const container = document.getElementById('reportContainer');
+            
+            if (data && data.length > 0) {
+                let htmlContent = `
+                    <h1>DRG Report - ${fileName}</h1>
+                    <div class="notice">
+                        <strong>Note: </strong>Click the Copy Name and Copy Code buttons to copy the disease name and code separately.
+                    </div>
+                    <table id="drg-table">
+                        <tr>
+                            <th>Fields name</th>
+                            <th>Result</th>
+                        </tr>
+                `;
+                
+                const fieldMap = {};
+                data.forEach(item => { fieldMap[item[0]] = item; });
+                const neonatalAgeValue = fieldMap['age less than 1 year old'] ? fieldMap['age less than 1 year old'][1] : '';
+                const hideAge = hasNumber(neonatalAgeValue);
+                const orderedData = buildOrderedData(data, fieldMap, hideAge);
+
+                orderedData.forEach((item, index) => {
+                    const fieldName = item[0];
+                    const displayFieldName = displayNameMap[fieldName] || fieldName;
+                    const value = item[1];
+                    const type = item[2];
+
+                    // Do not display this row when newborn age is empty
+                    if (fieldName === 'age less than 1 year old' && (!value || value === '' || value === 'None')) {
+                        return;
+                    }
+                    
+                    if (type === 'diagnosis' && Array.isArray(value)) {
+                        // For diagnosis-type data, display separate copy buttons for name and code
+                        htmlContent += `
+                            <tr>
+                                <td class="field-name">${displayFieldName}</td>
+                                <td>
+                                    <div class="diagnosis-container">
+                        `;
+                        
+                        if (value.length > 0) {
+                            if (fieldName &&  /outpatient or emergency diagnosis/i.test(fieldName)) {
+                                const names = value
+                                    .map(diag => (diag && typeof diag === 'object') ? diag.name : String(diag))
+                                    .filter(Boolean);
+                                const codes = value
+                                    .map(diag => (diag && typeof diag === 'object') ? diag.code : '')
+                                    .filter(Boolean);
+                                const combinedName = names.join(' ');
+                                const combinedCode = codes.join(', ');
+                                const validatedCode = combinedCode ? renderValidatedCode(fileName, fieldName, combinedCode) : '';
+                                const displayText = combinedCode ? `${escapeHtmlText(combinedName)} (${validatedCode})` : escapeHtmlText(combinedName);
+                                htmlContent += `
+                                    <div class="diagnosis-item">
+                                        <span class="diagnosis-text">${displayText}</span>
+                                        <div class="copy-buttons">
+                                            <button class="copy-name-btn" onclick="copyDiagnosisValue('${combinedName}', 'outpatient or emergency diagnosis')">Copy Name</button>
+                                            <button class="copy-code-btn" onclick="copyDiagnosisValue('${combinedCode}', 'outpatient or emergency diagnosis code')">Copy Code</button>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                value.forEach((diag, diagIndex) => {
+                                    if (typeof diag === 'object' && diag.name && diag.code) {
+                                        const needsIndex = (fieldName === 'secondary diagnoses and codes' || fieldName === 'surgical procedures and codes');
+                                        const indexPrefix = needsIndex ? `${diagIndex + 1}. ` : '';
+                                        htmlContent += `
+                                            <div class="diagnosis-item">
+                                                <span class="diagnosis-text">${escapeHtmlText(indexPrefix + diag.name)} (${renderValidatedCode(fileName, fieldName, diag.code)})</span>
+                                                <div class="copy-buttons">
+                                                    <button class="copy-name-btn" onclick="copyDiagnosisValue('${diag.name}', '${fieldName} name')">Copy Name</button>
+                                                    <button class="copy-code-btn" onclick="copyDiagnosisValue('${diag.code}', '${fieldName} code')">Copy Code</button>
+                                                </div>
+                                            </div>
+                                        `;
+                                    } else {
+                                        const needsIndex = (fieldName === 'secondary diagnoses and codes' || fieldName === 'surgical procedures and codes');
+                                        const indexPrefix = needsIndex ? `${diagIndex + 1}. ` : '';
+                                        htmlContent += `<div class="diagnosis-item">${indexPrefix}${diag}</div>`;
+                                    }
+                                });
+                            }
+                        } else {
+                            htmlContent += '<div class="diagnosis-item">None</div>';
+                        }
+                        
+                        htmlContent += `
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        // Single-value data
+                        const displayValue = (fieldName === 'gender' || fieldName === 'discharge method')
+                            ? cleanPrefixCodeText(value)
+                            : value;
+                        const institutionName = fieldName === 'discharge method'
+                            ? extractMedicalInstitution(value)
+                            : '';
+                        const showCopyBtn = fieldName === 'gender'
+                            ? false
+                            : (fieldName === 'discharge method' ? !!institutionName : true);
+                        const copyValue = (fieldName === 'discharge method' && institutionName) ? institutionName : value;
+                        const safeCopyValue = String(copyValue).replace(/'/g, "\\'");
+                        const copyLabel = (fieldName === 'discharge method' && institutionName) ? '📋 Copy Medical Institution' : '📋 Copy';
+                        htmlContent += `
+                            <tr>
+                                <td class="field-name">${displayFieldName}</td>
+                                <td>
+                                    <div class="value-container">
+                                        <span class="value-text">${displayValue}</span>
+                                        ${showCopyBtn ? `<button class="row-copy-btn" onclick="copyRowValue('${safeCopyValue}', '${fieldName}')">${copyLabel}</button>` : ''}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
+                
+                htmlContent += `
+                    </table>
+                    <div style="margin-top: 20px; font-size: 12px; color: #999; text-align: right;">
+                        Generated time:${new Date().toLocaleString()}
+                    </div>
+                `;
+                
+                container.innerHTML = htmlContent;
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.scrollTop = 0;
+                }
+                window.scrollTo(0, 0);
+            } else {
+                container.innerHTML = '<div class="no-data">No available data in this file</div>';
+            }
+        }
+        
+        function copyRowValue(textToCopy, fieldName) {
+            // Copy to clipboard
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Get the currently clicked button
+                const button = event.target;
+                const originalText = button.textContent;
+                
+                // Change button style and text to indicate successful copy
+                button.textContent = '✓ Copied';
+                button.classList.add('copied');
+                
+                // 2restore to original after seconds
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+                
+                // Optional: output copied content in the console
+                console.log(`Copied ${fieldName}: ${textToCopy}`);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                
+                // Fallback solution
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                // Also show success effect
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✓ Copied';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+        
+        function copyDiagnosisValue(textToCopy, fieldName) {
+            // Copy to clipboard
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Get the currently clicked button
+                const button = event.target;
+                const originalText = button.textContent;
+                
+                // Change button style and text to indicate successful copy
+                button.textContent = '✓ Copied';
+                button.classList.add('copied');
+                
+                // 2restore to original after seconds
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+                
+                // Optional: output copied content in the console
+                console.log(`Copied ${fieldName}: ${textToCopy}`);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                
+                // Fallback solution
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                // Also show success effect
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✓ Copied';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+        
+        // Show the home page when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            renderSortOrderList();
+            showHomePage();
+        });
+    </script>
+</body>
+</html>
